@@ -1,6 +1,5 @@
 import speech_recognition as sr
 from googletrans import Translator
-from langdetect import detect
 import pyttsx3
 import time
 
