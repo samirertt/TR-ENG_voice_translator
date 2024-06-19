@@ -4,4 +4,3 @@ pyttsx3
 streamlit
 sounddevice
 wavio
-tempfile
