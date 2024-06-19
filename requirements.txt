@@ -1,4 +1,4 @@
-PortAudio
+pyaudio
 speechrecognition
 googletrans==4.0.0-rc1
 pyttsx3
