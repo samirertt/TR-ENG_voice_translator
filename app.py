@@ -1,25 +1,10 @@
 import streamlit as st
+from st_audiorec import st_audiorec
 import speech_recognition as sr
 from googletrans import Translator
-import sounddevice as sd
-import wavio
 import tempfile
 import os
 
-def record_audio(duration=5, fs=44100):
-    """Record audio from the microphone and save it as a temporary WAV file."""
-    try:
-        st.info(f"Recording for {duration} seconds... Please speak into the microphone.")
-        recording = sd.rec(int(duration * fs), samplerate=fs, channels=2)
-        sd.wait()  # Wait until the recording is finished
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
-            audio_file_path = temp_audio_file.name
-            wavio.write(audio_file_path, recording, fs, sampwidth=2)
-        st.success("Recording finished!")
-        return audio_file_path
-    except Exception as e:
-        st.error(f"An unexpected error occurred during recording: {e}")
-        return None
 
 def recognize_speech_from_audio(audio_file_path, language):
     """Recognize speech from an audio file and convert it to text."""
@@ -38,6 +23,7 @@ def recognize_speech_from_audio(audio_file_path, language):
         st.error(f"An unexpected error occurred during speech recognition: {e}")
     return None
 
+
 def translate_text(text, src_lang, dest_lang):
     """Translate text from one language to another."""
     try:
@@ -48,6 +34,7 @@ def translate_text(text, src_lang, dest_lang):
         st.error(f"An error occurred while translating: {e}")
         return None
 
+
 def main():
     st.title("Türkçe ve İngilizce Çeviri Uygulaması")
 
@@ -56,41 +43,38 @@ def main():
 
     language_choice = st.radio("Choose translation direction / Çeviri yönünü seçin:", ["TR to ENG", "ENG to TR"])
 
-    audio_file_path = None
+    # Use st_audiorec to record audio
+    st.write("Record your audio below:")
+    wav_audio_data = st_audiorec()
 
-    st.write("You can record audio or upload a pre-recorded audio file.")
+    if wav_audio_data is not None:
+        # Save the recorded audio to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
+            temp_audio_file.write(wav_audio_data)
+            audio_file_path = temp_audio_file.name
 
-    if st.button("Record Audio"):
-        audio_file_path = record_audio()
+        st.audio(wav_audio_data, format='audio/wav')
+
         if audio_file_path:
-            st.audio(audio_file_path)
+            if language_choice == "TR to ENG":
+                text = recognize_speech_from_audio(audio_file_path, "tr-TR")
+                if text:
+                    st.write("Recognized Text (Turkish):")
+                    st.write(text)
+                    translated_text = translate_text(text, "tr", "en")
+                    if translated_text:
+                        st.write("Translated Text (English):")
+                        st.write(translated_text)
+            elif language_choice == "ENG to TR":
+                text = recognize_speech_from_audio(audio_file_path, "en-US")
+                if text:
+                    st.write("Recognized Text (English):")
+                    st.write(text)
+                    translated_text = translate_text(text, "en", "tr")
+                    if translated_text:
+                        st.write("Translated Text (Turkish):")
+                        st.write(translated_text)
 
-    uploaded_file = st.file_uploader("Or upload an audio file", type=["wav"])
-    if uploaded_file is not None:
-        audio_file_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
-        with open(audio_file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.audio(audio_file_path)
-
-    if audio_file_path:
-        if language_choice == "TR to ENG":
-            text = recognize_speech_from_audio(audio_file_path, "tr-TR")
-            if text:
-                st.write("Recognized Text (Turkish):")
-                st.write(text)
-                translated_text = translate_text(text, "tr", "en")
-                if translated_text:
-                    st.write("Translated Text (English):")
-                    st.write(translated_text)
-        elif language_choice == "ENG to TR":
-            text = recognize_speech_from_audio(audio_file_path, "en-US")
-            if text:
-                st.write("Recognized Text (English):")
-                st.write(text)
-                translated_text = translate_text(text, "en", "tr")
-                if translated_text:
-                    st.write("Translated Text (Turkish):")
-                    st.write(translated_text)
 
 if __name__ == "__main__":
     main()
