@@ -3,7 +3,6 @@ from st_audiorec import st_audiorec
 import speech_recognition as sr
 from googletrans import Translator
 import tempfile
-import os
 
 
 def recognize_speech_from_audio(audio_file_path, language):
@@ -53,7 +52,6 @@ def main():
             temp_audio_file.write(wav_audio_data)
             audio_file_path = temp_audio_file.name
 
-        st.audio(wav_audio_data, format='audio/wav')
 
         if audio_file_path:
             if language_choice == "TR to ENG":
