@@ -52,7 +52,6 @@ def main():
             temp_audio_file.write(wav_audio_data)
             audio_file_path = temp_audio_file.name
 
-
         if audio_file_path:
             if language_choice == "TR to ENG":
                 text = recognize_speech_from_audio(audio_file_path, "tr-TR")
