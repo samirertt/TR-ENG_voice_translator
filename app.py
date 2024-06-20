@@ -4,7 +4,7 @@ from googletrans import Translator
 import sounddevice as sd
 import wavio
 import tempfile
-
+import os
 
 def record_audio(duration=5, fs=44100):
     """Record audio from the microphone and save it as a temporary WAV file."""
@@ -20,7 +20,6 @@ def record_audio(duration=5, fs=44100):
     except Exception as e:
         st.error(f"An unexpected error occurred during recording: {e}")
         return None
-
 
 def recognize_speech_from_audio(audio_file_path, language):
     """Recognize speech from an audio file and convert it to text."""
@@ -39,7 +38,6 @@ def recognize_speech_from_audio(audio_file_path, language):
         st.error(f"An unexpected error occurred during speech recognition: {e}")
     return None
 
-
 def translate_text(text, src_lang, dest_lang):
     """Translate text from one language to another."""
     try:
@@ -49,7 +47,6 @@ def translate_text(text, src_lang, dest_lang):
     except Exception as e:
         st.error(f"An error occurred while translating: {e}")
         return None
-
 
 def main():
     st.title("Türkçe ve İngilizce Çeviri Uygulaması")
@@ -61,10 +58,19 @@ def main():
 
     audio_file_path = None
 
+    st.write("You can record audio or upload a pre-recorded audio file.")
+
     if st.button("Record Audio"):
         audio_file_path = record_audio()
         if audio_file_path:
             st.audio(audio_file_path)
+
+    uploaded_file = st.file_uploader("Or upload an audio file", type=["wav"])
+    if uploaded_file is not None:
+        audio_file_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
+        with open(audio_file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.audio(audio_file_path)
 
     if audio_file_path:
         if language_choice == "TR to ENG":
@@ -85,7 +91,6 @@ def main():
                 if translated_text:
                     st.write("Translated Text (Turkish):")
                     st.write(translated_text)
-
 
 if __name__ == "__main__":
     main()
